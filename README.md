@@ -12,6 +12,9 @@ dev-oss-web-wz9d7qqtzw8    dev-oss-web-wz9d7qqtzw9   dev-oss-web-wz9d7qqtzw7
 # please make sure you have awscli and jq installed
 # macOS user can install them via brew install alyuncli jq
 
+# install aliyuncli jq
+brew install aliyun-cli jq
+
 # clone it
 git clone https://github.com/cccfs/jump.sh ~/.jumphost
 echo '. ~/.jumphost/auto-completion.sh' >> ~/.bashrc # or .zshrc, depending which shell you use
