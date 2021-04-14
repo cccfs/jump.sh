@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ALICLOUD_PROFILE="dev" 
+ALICLOUD_REGION="cn-shenzhen"
+CACHE_DIR="$HOME/.jumphost/cache"
+CACHE_TTL=10
+OUTPUT_NAME="$ALICLOUD_PROFILE.$ALICLOUD_REGION"
+
+if [ $(find $CACHE_DIR -name $OUTPUT_NAME.ecs.json -mmin -$CACHE_TTL | wc -l) -ne 0 ]; then
+  exit 0
+fi
+
+aliyun ecs DescribeInstances --profile $ALICLOUD_PROFILE --region $ALICLOUD_REGION > $CACHE_DIR/$OUTPUT_NAME.ecs.json
+
+cat $CACHE_DIR/$OUTPUT_NAME.ecs.json | \
+  jq '.Instances.Instance[] | 
+      select(.Status == "Running") | 
+      { 
+        InstanceId: .InstanceId, 
+        PublicIpAddress: .PublicIpAddress.IpAddress[],
+        PrivateIpAddress: .VpcAttributes.PrivateIpAddress.IpAddress[], 
+        Name: (.InstanceName + (.InstanceId[1:])), 
+        SshUser: "root"
+      }' | 
+      jq -r '.|[.Name, .PublicIpAddress, .SshUser] | @tsv' \
+  > $CACHE_DIR/$OUTPUT_NAME.ecs.findhost.tsv
+
+
